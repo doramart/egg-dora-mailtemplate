@@ -109,13 +109,21 @@ let MailTemplateController = {
                 siteDomain
             })
 
-            let myTemp = await ctx.helper.reqJsonData('mailTemplate/getOne', {
-                type: tempkey
+            // let myTemp = await ctx.helper.reqJsonData('mailTemplate/getOne', {
+            //     type: tempkey
+            // });
+
+            let myTemp = await ctx.service.mailTemplate.item(ctx, {
+                query: {
+                    type: tempkey
+                }
             });
 
             if (_.isEmpty(myTemp) && tempkey != "-1") {
                 throw new Error(ctx.__('validate_error_params'));
             }
+
+            emailSubject = emailTitle = '[' + siteName + '] ' + myTemp.title;
 
             // -1特指邮件群发
             if (tempkey == "-1") {
@@ -127,15 +135,8 @@ let MailTemplateController = {
                 let oldLink = sendEmailInfo.password + '$' + sendEmailInfo.email + '$' + app.config.session_secret;
                 let newLink = ctx.helper.encrypt(oldLink, app.config.encrypt_key);
                 sendEmailInfo.token = newLink;
-                emailSubject = emailTitle = '[' + siteName + '] ' + ctx.__("label_sendEmail_activePwd_title");
                 emailContent = siteFunc.renderHtmlByKey(myTemp.content, sendEmailInfo, "email,userName,token,siteName,siteDomain");
-            } else if (tempkey == "3") {
-                emailSubject = emailTitle = '[' + siteName + '] ' + ctx.__("label_sendEmail_recieveMsg_title");
-                emailContent = siteFunc.renderHtmlByKey(myTemp.content, sendEmailInfo, 'name,email,siteName,siteDomain,phoneNum,comments');
-                toEmail = sysConfigs.siteEmail;
             } else if (tempkey == "6") {
-                emailSubject = emailTitle = '[' + siteName + '] ' + ctx.__("label_sendEmail_notice_haveMsg");
-
                 var msgDate = moment(sendEmailInfo.date).format('YYYY-MM-DD HH:mm:ss');
                 sendEmailInfo.message_author_userName = sendEmailInfo.author.userName;
                 sendEmailInfo.message_sendDate = msgDate;
@@ -143,12 +144,7 @@ let MailTemplateController = {
                 sendEmailInfo.message_content_id = sendEmailInfo.content._id;
                 emailContent = siteFunc.renderHtmlByKey(myTemp.content, sendEmailInfo, 'siteName,message_author_userName,message_sendDate,siteName,siteDomain,message_content_title,message_content_id');
                 toEmail = sendEmailInfo.replyAuthor.email;
-            } else if (tempkey == "4") {
-                emailSubject = emailTitle = '[' + siteName + '] ' + ctx.__("label_sendEmail_noticeuser_askInfo_success");
-                emailContent = siteFunc.renderHtmlByKey(myTemp.content, sendEmailInfo, 'name,email,siteName,siteDomain,phoneNum,comments');
-                toEmail = sendEmailInfo.email;
             } else if (tempkey == "8") {
-                emailSubject = emailTitle = '[' + siteName + '] ' + ctx.__("label_sendEmail_sendMessageCode_success");
                 emailContent = siteFunc.renderHtmlByKey(myTemp.content, sendEmailInfo, 'email,siteName,siteDomain,msgCode');
                 toEmail = sendEmailInfo.email;
             }
