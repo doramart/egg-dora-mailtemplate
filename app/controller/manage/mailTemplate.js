@@ -100,7 +100,13 @@ let MailTemplateController = {
                 comment: fields.comment,
                 title: fields.title,
                 subTitle: fields.subTitle,
-                content: xss(fields.content),
+                content: xss(fields.content, {
+                    onIgnoreTagAttr: function (tag, name, value, isWhiteAttr) {
+                        if (name === "style" || name === "class") {
+                            return name + '="' + xss.escapeAttrValue(value) + '"';
+                        }
+                    }
+                }),
                 type: fields.type,
                 createTime: new Date()
             }
@@ -152,13 +158,12 @@ let MailTemplateController = {
                 comment: fields.comment,
                 title: fields.title,
                 subTitle: fields.subTitle,
-                content: xss(fields.content,{
-                    onIgnoreTagAttr: function(tag, name, value, isWhiteAttr) {
+                content: xss(fields.content, {
+                    onIgnoreTagAttr: function (tag, name, value, isWhiteAttr) {
                         if (name === "style" || name === "class") {
-                          // escape its value using built-in escapeAttrValue function
-                          return name + '="' + xss.escapeAttrValue(value) + '"';
+                            return name + '="' + xss.escapeAttrValue(value) + '"';
                         }
-                      }
+                    }
                 }),
                 type: fields.type,
                 updateTime: new Date()
